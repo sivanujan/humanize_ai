@@ -31,6 +31,10 @@ An open-source toolkit that explores **4 proven approaches** to rewrite AI-gener
 
 ## Techniques
 
+<p align="center">
+  <img src="presentation/techniques-overview.png" alt="AI-Humanizer techniques overview" width="820"/>
+</p>
+
 This toolkit implements 4 independent humanization approaches. Each has strengths and trade-offs — understanding them helps you pick the right tool for your use case.
 
 ### Method 1: Multi-Language Translation Chain
@@ -54,6 +58,10 @@ Uses large language models with context-aware multi-round rewriting. Each round 
 > **Limitation:** Used alone, semantic drift increases with each round. Requires careful prompt engineering to maintain original meaning.
 
 ### Method 3: Detection-Guided Feedback Loop
+
+<p align="center">
+  <img src="presentation/detection-feedback-loop.png" alt="Detection-guided feedback loop for text humanization" width="760"/>
+</p>
 
 A closed-loop system that rewrites text, runs it through multiple detection signals, and iteratively refines passages that still trigger detection.
 
@@ -105,6 +113,10 @@ Each open-source method above addresses **part** of the problem. In practice, no
 ---
 
 ## Comparison
+
+<p align="center">
+  <img src="presentation/comparison-pipeline.png" alt="Open-source single methods compared with an adaptive all-in-one pipeline" width="820"/>
+</p>
 
 | | Open-Source (Single Method) | Lynote.ai |
 |---|---|---|
