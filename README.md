@@ -189,8 +189,6 @@ docker compose up -d
 
 ---
 
-
-
 ## Contributing
 
 We welcome contributions! See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
