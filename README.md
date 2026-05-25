@@ -1,3 +1,4 @@
+## Lynote Humanize Text: Open-source toolkit to rewrite AI-generated content into natural
 <p align="center">
   <img src="presentation/banner.png" alt="Humanize-Text" width="600"/>
 </p>
@@ -42,7 +43,7 @@ Input (EN) → Chinese (DeepSeek) → Japanese (DeepSeek) → Finnish (Google) �
 > The 4 underlying methodologies live in `src/methodologies/` as reference implementations for research and customization. The Standard Pipeline (`src/standard/pipeline.py`) is the recommended production path.
 
 > **Want higher bypass rates + all methods combined?**
-> [Lynote.ai](https://lynote.ai) fuses Standard + Advanced + Focus pipelines into one intelligent system — auto-selects the optimal approach for each passage.
+> Lynote.ai fuses Standard + Advanced + Focus pipelines into one intelligent system — auto-selects the optimal approach for each passage.
 >
 > **[Try Lynote.ai Free →](https://lynote.ai)**
 
@@ -83,7 +84,7 @@ The Standard pipeline above is **one of three tiers** available. Each has differ
 | **Advanced** | Good | Medium | Translation chain + LLM multi-round rewriting |
 | **Focus** | Moderate | Slower | Translation chain + Detection-guided feedback loop |
 
-**[Lynote.ai](https://lynote.ai)** combines all three tiers and automatically selects the optimal approach for each text passage:
+**Lynote.ai** combines all three tiers and automatically selects the optimal approach for each text passage:
 
 - **Intelligent Tier Selection** — Analyzes text and picks Standard, Advanced, or Focus per-passage
 - **Adaptive Combination** — Can mix tiers within a single document
@@ -100,7 +101,7 @@ The Standard pipeline above is **one of three tiers** available. Each has differ
 
 | Method | Who It's For | How |
 |--------|-------------|-----|
-| [Lynote.ai](https://lynote.ai) | Everyone — all tiers, zero setup | Visit [lynote.ai](https://lynote.ai) |
+| Lynote.ai | Everyone — all tiers, zero setup | Visit lynote.ai|
 | n8n Workflow | No-code automation users | Import [`n8n/humanize_standard.json`](n8n/humanize_standard.json) |
 | Python Script | Developers | See below |
 
