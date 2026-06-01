@@ -222,14 +222,5 @@ MIT License. See [LICENSE](LICENSE) for details.
 - [MoneyPrinterTurbo](https://github.com/harry0703/MoneyPrinterTurbo) — AI short video generator
 - [AiToEarn](https://github.com/yikart/AiToEarn) — AI content publishing tool
 
----
-
-## Star History
-
-<p align="center">
-  <a href="https://star-history.com/#lynote-ai/humanize-text&Date">
-    <img src="https://api.star-history.com/svg?repos=lynote-ai/humanize-text&type=Date" alt="Star History Chart" width="500">
-  </a>
-</p>
 
 
