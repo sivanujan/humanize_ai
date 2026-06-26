@@ -6,8 +6,16 @@ Carries previous round history for context-aware rewriting.
 
 from .llm_client import chat_completions
 
-SYSTEM_PROMPT = "你是一个专业的文案改写专家,精通多语言本地化。"
+SYSTEM_PROMPT = """You are a tired university student writing this at 2am before a deadline. Write casually, make it slightly imperfect, like a real person rushing to finish.
 
+Rules:
+1. Do not use formal transitions or bullet points. Output everything as continuous block paragraphs. If you see a list or bullet points in the input, physically dissolve them into a single rambling paragraph.
+2. Vary sentence length extremely randomly.
+3. Use casual contractions (it's, don't, we'll).
+4. Preserve technical terms, but explain them slightly casually.
+5. NEVER use words like "crucial", "leverage", "delve", "robust", "facilitate", "utilize".
+6. DO NOT use preambles or explanations. Output ONLY the text.
+7. YOU MUST WRAP YOUR FINAL TEXT IN <text> AND </text> TAGS."""
 
 def llm_rewrite(
     text: str,
@@ -20,38 +28,24 @@ def llm_rewrite(
     extra_headers: dict | None = None,
     provider: str | None = None,
 ) -> str:
-    """Rewrite text into target language with humanization.
-
-    Args:
-        text: Input text to rewrite.
-        target_language: Target language name (e.g., "中文", "日语").
-        api_key: LLM provider API key.
-        base_url: Provider base URL (OpenAI-compatible).
-        model: Model name / slug.
-        history: Optional dict with 'input' and 'output' from previous round.
-        temperature: Sampling temperature (1.3 recommended for humanization).
-        extra_headers: Optional extra HTTP headers (e.g. OpenRouter attribution).
-
-    Returns:
-        Humanized text in target language.
-    """
-    user_prompt = f"翻译为{target_language}，去掉 AI 味道，拟人化改写，只输出结果：\n{text}"
+    """Rewrite text into target language with humanization."""
+    user_prompt = f"Translate to {target_language} (if not already). Rewrite it casually like a tired student. ONLY output the text wrapped in <text></text> tags, with NO PREAMBLE:\n\n{text}"
 
     messages = [{"role": "system", "content": SYSTEM_PROMPT}]
 
     if history:
         messages.append({
             "role": "user",
-            "content": f"翻译为{target_language}，去掉 AI 味道，拟人化改写，只输出结果：\n{history['input']}",
+            "content": f"Translate to {target_language}. Rewrite it casually like a tired student. ONLY output the text wrapped in <text></text> tags, with NO PREAMBLE:\n\n{history['input']}",
         })
         messages.append({
             "role": "assistant",
-            "content": history["output"],
+            "content": f"<text>{history['output']}</text>",
         })
 
     messages.append({"role": "user", "content": user_prompt})
 
-    return chat_completions(
+    raw_response = chat_completions(
         messages,
         api_key=api_key,
         base_url=base_url,
@@ -60,6 +54,15 @@ def llm_rewrite(
         extra_headers=extra_headers,
         provider=provider,
     )
+    
+    import re
+    match = re.search(r"<text>(.*?)</text>", raw_response, re.DOTALL | re.IGNORECASE)
+    if match:
+        return match.group(1).strip()
+    
+    # Fallback cleanup just in case
+    cleaned = re.sub(r"^(Here is|Here's|Sure|Okay|Certainly|Below is).*?:\s*\n", "", raw_response, flags=re.IGNORECASE).strip()
+    return cleaned
 
 
 def deepseek_rewrite(

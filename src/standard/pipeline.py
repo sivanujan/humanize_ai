@@ -19,7 +19,7 @@ import toml
 from .llm_client import resolve_llm_config
 from .translators import google_translate, niutrans_translate
 from .llm_rewriter import llm_rewrite
-
+from .vocab_swapper import swap_ai_vocabulary
 
 def run_standard_pipeline(text: str, config: dict, target_lang: str = "en") -> dict:
     """Run the Standard humanization pipeline.
@@ -43,67 +43,81 @@ def run_standard_pipeline(text: str, config: dict, target_lang: str = "en") -> d
     steps = []
     start = time.time()
 
-    # Step 1: LLM — Input (EN) → Chinese humanization rewrite
-    step1 = llm_rewrite(
-        text=text,
-        target_language="中文",
-        api_key=llm["api_key"],
-        base_url=llm["base_url"],
-        model=llm["model"],
-        history=None,
-        temperature=llm["temperature"],
-        extra_headers=llm["extra_headers"],
-        provider=llm["provider"],
-    )
+    # Split into paragraphs
+    paragraphs = [p.strip() for p in text.split("\n\n") if p.strip()]
+    processed_paragraphs = []
+    
+    from collections import defaultdict
+    # We will aggregate step outputs for the UI
+    aggregated_steps = defaultdict(str)
+    
+    # 3 distinct language families to maximize structural scrambling
+    languages = [
+        ("ja", "Japanese"),
+        ("ta", "Tamil"),
+        ("ru", "Russian")
+    ]
+    
+    for i, para in enumerate(paragraphs):
+        # Step 1: LLM Rewrite (Software Engineering Student Persona)
+        target_name = "English" if target_lang.lower() == "en" else target_lang
+        step1 = llm_rewrite(
+            text=para,
+            target_language=target_name,
+            api_key=llm["api_key"],
+            base_url=llm["base_url"],
+            model=llm["model"],
+            history=None,
+            temperature=llm["temperature"],
+            extra_headers=llm["extra_headers"],
+            provider=llm["provider"],
+        )
+        # Strip potential markdown formatting
+        step1 = step1.replace("**", "").replace("### ", "").replace("## ", "").replace("# ", "")
+        aggregated_steps[1] += step1 + "\n\n"
+        
+        current_text = step1
+        
+        # Iteratively scramble through languages
+        for idx, (lang_code, _) in enumerate(languages):
+            translated_fwd = google_translate(current_text, source="en", target=lang_code)
+            time.sleep(1)
+            current_text = google_translate(translated_fwd, source=lang_code, target="en")
+            time.sleep(1)
+            aggregated_steps[idx + 2] += current_text + "\n\n"
+        
+        # Programmatic Vocabulary Swap (replaces AI words like 'basically', 'utilize')
+        final_para = swap_ai_vocabulary(current_text)
+        
+        processed_paragraphs.append(final_para)
+
+    # Add Step 1 (LLM) to UI steps
     steps.append({
         "step": 1, "engine": engine_name,
-        "direction": "Input → Chinese (中文改写)",
-        "output": step1, "length": len(step1),
+        "direction": f"Input → {target_lang.upper()} (Student Persona)",
+        "output": aggregated_steps[1].strip(), "length": len(aggregated_steps[1]),
     })
-
-    # Step 2: LLM — Chinese → Japanese (carries step 1 as history)
-    step2 = llm_rewrite(
-        text=step1,
-        target_language="日语",
-        api_key=llm["api_key"],
-        base_url=llm["base_url"],
-        model=llm["model"],
-        history={"input": text, "output": step1},
-        temperature=llm["temperature"],
-        extra_headers=llm["extra_headers"],
-        provider=llm["provider"],
-    )
+    
+    # Add Translation hops to UI steps
+    for idx, (_, lang_name) in enumerate(languages):
+        steps.append({
+            "step": idx + 2, "engine": "Google",
+            "direction": f"English → {lang_name} → English",
+            "output": aggregated_steps[idx + 2].strip(), "length": len(aggregated_steps[idx + 2]),
+        })
+    
+    # Add Final Output to UI steps
+    final_output = "\n\n".join(processed_paragraphs)
     steps.append({
-        "step": 2, "engine": engine_name,
-        "direction": "Chinese → Japanese (日语改写)",
-        "output": step2, "length": len(step2),
-    })
-
-    # Step 3: Google Translate — Japanese → intermediate language (first translation hop)
-    step3 = google_translate(step2, source="ja", target=intermediate_lang)
-    steps.append({
-        "step": 3, "engine": "Google",
-        "direction": f"Japanese → {intermediate_lang.upper()} (一轮翻译)",
-        "output": step3, "length": len(step3),
-    })
-
-    # Step 4: Niutrans — intermediate language → target (second translation hop)
-    step4 = niutrans_translate(
-        step3,
-        source=intermediate_lang,
-        target=_lang_code_to_niutrans(target_lang),
-        api_key=niutrans_key,
-    )
-    steps.append({
-        "step": 4, "engine": "Niutrans",
-        "direction": f"{intermediate_lang.upper()} → {target_lang.upper()} (二轮翻译)",
-        "output": step4, "length": len(step4),
+        "step": len(languages) + 2, "engine": "Google + Python",
+        "direction": "Final Scramble & Vocab Swap",
+        "output": final_output, "length": len(final_output),
     })
 
     elapsed_ms = int((time.time() - start) * 1000)
 
     return {
-        "result": step4,
+        "result": final_output,
         "steps": steps,
         "processing_time_ms": elapsed_ms,
     }

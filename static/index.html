@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Humanizer Studio</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --surface-color: rgba(30, 41, 59, 0.7);
+            --primary-gradient: linear-gradient(135deg, #a855f7, #3b82f6);
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background: var(--bg-color);
+            background-image: 
+                radial-gradient(circle at 15% 50%, rgba(168, 85, 247, 0.15), transparent 25%),
+                radial-gradient(circle at 85% 30%, rgba(59, 130, 246, 0.15), transparent 25%);
+            color: var(--text-main);
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 900px;
+            padding: 40px 20px;
+            box-sizing: border-box;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        h1 {
+            font-size: 3.5rem;
+            font-weight: 800;
+            background: var(--primary-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin: 0 0 10px 0;
+        }
+
+        p.subtitle {
+            font-size: 1.2rem;
+            color: var(--text-muted);
+            margin: 0;
+        }
+
+        .glass-panel {
+            background: var(--surface-color);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 24px;
+            padding: 30px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            margin-bottom: 30px;
+        }
+
+        textarea {
+            width: 100%;
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 20px;
+            color: var(--text-main);
+            font-family: 'Inter', sans-serif;
+            font-size: 1.1rem;
+            line-height: 1.6;
+            resize: vertical;
+            min-height: 200px;
+            box-sizing: border-box;
+            transition: all 0.3s ease;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: #a855f7;
+            box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.2);
+        }
+
+        button {
+            width: 100%;
+            background: var(--primary-gradient);
+            color: white;
+            border: none;
+            border-radius: 16px;
+            padding: 16px;
+            font-size: 1.2rem;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px -5px rgba(168, 85, 247, 0.5);
+        }
+
+        button:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
+            vertical-align: middle;
+            margin-right: 10px;
+            display: none;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Results Section */
+        #results-section {
+            display: none;
+            animation: slideUp 0.5s ease;
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .result-box {
+            background: rgba(168, 85, 247, 0.05);
+            border: 1px solid rgba(168, 85, 247, 0.3);
+            border-radius: 16px;
+            padding: 25px;
+            font-size: 1.2rem;
+            line-height: 1.8;
+            margin-bottom: 20px;
+        }
+
+        .steps-container {
+            margin-top: 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            padding-top: 20px;
+        }
+
+        .step {
+            margin-bottom: 15px;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 12px;
+            font-size: 0.95rem;
+            color: var(--text-muted);
+        }
+
+        .step-header {
+            font-weight: 600;
+            color: #3b82f6;
+            margin-bottom: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>✨ AI Humanizer Studio</h1>
+            <p class="subtitle">Transform robotic AI text into natural, undetectable human writing</p>
+        </header>
+
+        <div class="glass-panel">
+            <textarea id="inputText" placeholder="Paste your AI-generated text here..."></textarea>
+            <button id="submitBtn" onclick="humanizeText()">
+                <div class="spinner" id="spinner"></div>
+                <span id="btnText">🚀 Humanize Text</span>
+            </button>
+        </div>
+
+        <div id="results-section" class="glass-panel">
+            <h2 style="margin-top: 0;">🎉 Humanized Output</h2>
+            <div id="finalResult" class="result-box"></div>
+            
+            <div class="steps-container">
+                <h3 style="color: var(--text-muted); font-size: 1rem; margin-bottom: 15px;">🔍 Process Breakdown</h3>
+                <div id="stepsList"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        async function humanizeText() {
+            const text = document.getElementById('inputText').value;
+            const btn = document.getElementById('submitBtn');
+            const spinner = document.getElementById('spinner');
+            const btnText = document.getElementById('btnText');
+            const resultsSection = document.getElementById('results-section');
+            
+            if (!text.trim()) {
+                alert("Please enter some text first!");
+                return;
+            }
+
+            // UI State loading
+            btn.disabled = true;
+            spinner.style.display = 'inline-block';
+            btnText.innerText = 'Processing...';
+            resultsSection.style.display = 'none';
+
+            try {
+                const response = await fetch('/api/humanize', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ text: text })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.detail || "Something went wrong!");
+                }
+
+                // Populate UI
+                document.getElementById('finalResult').innerText = data.result;
+                
+                const stepsHtml = data.steps.map(step => `
+                    <div class="step">
+                        <div class="step-header">Step ${step.step} (${step.engine}) - ${step.direction}</div>
+                        <div>${step.output}</div>
+                    </div>
+                `).join('');
+                document.getElementById('stepsList').innerHTML = stepsHtml;
+
+                // Show results
+                resultsSection.style.display = 'block';
+
+            } catch (error) {
+                alert("Error: " + error.message);
+            } finally {
+                // UI State reset
+                btn.disabled = false;
+                spinner.style.display = 'none';
+                btnText.innerText = '🚀 Humanize Text';
+            }
+        }
+    </script>
+</body>
+</html>
