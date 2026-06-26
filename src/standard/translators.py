@@ -4,7 +4,9 @@ import httpx
 from deep_translator import GoogleTranslator
 
 
-def google_translate(text: str, source: str, target: str) -> str:
+import time
+
+def google_translate(text: str, source: str, target: str, retries: int = 3) -> str:
     """Translate text using Google Translate.
 
     Args:
@@ -17,12 +19,19 @@ def google_translate(text: str, source: str, target: str) -> str:
     """
     translator = GoogleTranslator(source=source, target=target)
 
-    # Handle long texts by chunking (Google has ~5000 char limit)
-    if len(text) > 4500:
-        chunks = _split_text(text, max_len=4500)
-        return " ".join(translator.translate(chunk) for chunk in chunks)
-
-    return translator.translate(text)
+    for attempt in range(retries):
+        try:
+            # Handle long texts by chunking (Google has ~5000 char limit)
+            if len(text) > 4500:
+                chunks = _split_text(text, max_len=4500)
+                return " ".join(translator.translate(chunk) for chunk in chunks)
+            return translator.translate(text)
+        except Exception as e:
+            if attempt < retries - 1:
+                time.sleep(3) # Wait before retrying
+            else:
+                print(f"Translation failed after {retries} attempts: {e}")
+                return text # Fallback to original text so pipeline doesn't crash
 
 
 def niutrans_translate(text: str, source: str, target: str, api_key: str) -> str:
