@@ -80,10 +80,16 @@ def run_standard_pipeline(text: str, config: dict, target_lang: str = "en") -> d
         
         # Iteratively scramble through languages
         for idx, (lang_code, _) in enumerate(languages):
-            translated_fwd = google_translate(current_text, source="en", target=lang_code)
-            time.sleep(1)
-            current_text = google_translate(translated_fwd, source=lang_code, target="en")
-            time.sleep(1)
+            backup_text = current_text
+            try:
+                translated_fwd = google_translate(current_text, source="en", target=lang_code)
+                time.sleep(1)
+                current_text = google_translate(translated_fwd, source=lang_code, target="en")
+                time.sleep(1)
+            except Exception as e:
+                print(f"Skipping {lang_code} hop due to translation error: {e}")
+                current_text = backup_text # Rollback so we don't leave text in a foreign language
+                
             aggregated_steps[idx + 2] += current_text + "\n\n"
         
         # Programmatic Vocabulary Swap (replaces AI words like 'basically', 'utilize')
